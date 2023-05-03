@@ -1,18 +1,18 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-import random 
+import random
 
-def get_graph(): 
+def get_graph():
     graph = nx.random_regular_graph(4, 100).to_directed()
     edges = list(graph.edges)
     chosen_edge = random.choice(edges)
     graph.remove_edge(chosen_edge[0], chosen_edge[1])
     return graph
 
-#Getting a list of nodes 
+#Getting a list of nodes
 print(list(get_graph().nodes))
 
-#Finding the min distance 
+#Finding the min distance
 dist = {}
 prev = {}
 q = set()
