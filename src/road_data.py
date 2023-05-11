@@ -62,6 +62,10 @@ def get_network() -> nx.DiGraph:
         __logger.info('Saving filtered data...')
         slc_road_gdf.to_file('../resources/SaltLakeCountyRoads.geojson', driver='GeoJSON')
 
+    if not os.path.isfile('../resources/SaltLakeCountyRoads.gpkg'):
+        __logger.info('Saving geometry to file...')
+        slc_road_gdf.geometry.to_file('../resources/SaltLakeCountyRoads.gpkg', driver='GPKG')
+
     road_network = nx.DiGraph()
     one_way_status = slc_road_gdf.one_way
     data: pd.Series
@@ -69,8 +73,10 @@ def get_network() -> nx.DiGraph:
             zip(slc_road_gdf.geometry.apply(get_start_and_end_points), slc_road_gdf.drop(columns=['one_way', 'geometry']).iterrows()),
             total=len(slc_road_gdf),
             desc='Creating Salt Lake County road network...'):
+        if start == end:
+            continue
         one_way = one_way_status[index]
-        attrs = data.to_dict()
+        attrs = data.to_dict() | {'geometry_index': index}
         if one_way == 0:  # Two-way
             road_network.add_edge(start, end, **attrs)
             road_network.add_edge(end, start, **attrs)
@@ -100,4 +106,5 @@ def get_network() -> nx.DiGraph:
 
 
 if __name__ == '__main__':
-    _ = get_network()
+    net = get_network()
+    print(net)
