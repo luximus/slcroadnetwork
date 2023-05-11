@@ -15,16 +15,26 @@ print(list(get_graph().nodes))
 #Finding the min distance 
 dist = {}
 prev = {}
-Q = []
-def dijkstra(get_graph(), source):
-    for n in get_graph().nodes:
+q = set()
+def dijkstra(graph, source):
+    for n in graph.nodes:
         dist[n] = float('inf')
         prev[n] = None
-        Q.append(n)
+        q.add(n)
     dist[source] = 0
 
-    while Q.len()!=0:
-        
+    while q:
+        u = q.pop(min(q, key=lambda x: dist[x]))
+
+        for neighbor in (n for n in graph.neighbors(u) if n in q):
+            alt = dist[n] + graph[graph][neighbor]["length"] / graph[graph][neighbor]["speed_limit"]
+            if alt < dist[neighbor]:
+                dist[neighbor] = alt
+                prev[neighbor] = n
+        return dist, prev
+
+
+
 
 
 
