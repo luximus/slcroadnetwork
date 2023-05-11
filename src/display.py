@@ -1,17 +1,15 @@
-import pandas as pd
-
-from road_data import get_network
-
-import networkx as nx
-import geopandas as gpd
-import matplotlib.pyplot as plt
-from matplotlib import colors, cm
-import numpy as np
 import logging
-from logginghandlers import create_handler
 import os
 from typing import Any
 
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import networkx as nx
+import pandas as pd
+from matplotlib import colors, cm
+
+from logginghandlers import create_handler
+from road_data import get_network
 
 __logger = logging.getLogger(__name__)
 __logger.addHandler(create_handler(logging.INFO))
