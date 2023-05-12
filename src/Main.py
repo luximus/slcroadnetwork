@@ -1,6 +1,8 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import random 
+from road_data import get_network
+from tqdm import tqdm
 
 def get_graph(): 
     graph = nx.random_regular_graph(4, 100).to_directed()
@@ -13,10 +15,10 @@ def get_graph():
 print(list(get_graph().nodes))
 
 #Finding the min distance 
-dist = {}
-prev = {}
-q = set()
 def dijkstra(graph, source):
+    dist = {}
+    prev = {}
+    q = set()
     for n in graph.nodes:
         dist[n] = float('inf')
         prev[n] = None
@@ -24,16 +26,18 @@ def dijkstra(graph, source):
     dist[source] = 0
 
     while q:
-        u = q.pop(min(q, key=lambda x: dist[x]))
+        u = min(q, key=lambda x: dist[x])
+        q.remove(u)
 
         for neighbor in (n for n in graph.neighbors(u) if n in q):
-            alt = dist[n] + graph[graph][neighbor]["length"] / graph[graph][neighbor]["speed_limit"]
+            speed_limit = graph[u][neighbor]['speed_limit']
+            alt = dist[u] + graph[u][neighbor]["length"] / (speed_limit if speed_limit else 25)
             if alt < dist[neighbor]:
                 dist[neighbor] = alt
-                prev[neighbor] = n
-        return dist, prev
+                prev[neighbor] = u
+    return dist, prev
 
-
+print(dijkstra(get_network(), 0)[0])
 
 
 

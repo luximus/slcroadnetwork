@@ -21,7 +21,9 @@ def get_network() -> nx.DiGraph:
 
     if os.path.isfile('../resources/SaltLakeCountyRoadNetwork.xml.gz'):
         __logger.info('Road network already created.')
-        return nx.read_graphml('../resources/SaltLakeCountyRoadNetwork.xml.gz')
+        road_network = nx.read_graphml('../resources/SaltLakeCountyRoadNetwork.xml.gz')
+        nx.relabel_nodes(road_network, int, copy=False)
+        return road_network
 
     if os.path.isfile('../resources/SaltLakeCountyRoads.geojson'):
         __logger.info('Loading Salt Lake County road data...')
