@@ -2,6 +2,7 @@ import networkx as nx
 from road_data import get_network
 from tqdm import tqdm
 import numpy as np
+from search import find_intersections
 
 
 def remoteness(graph: nx.Graph, source: int) -> float:
@@ -36,8 +37,9 @@ def remoteness(graph: nx.Graph, source: int) -> float:
                 prev[neighbor] = u
         pbar.update()
     pbar.close()
-    return np.average(np.array(list(dist.values())))
+    return np.average(np.array([x for x in dist.values() if not np.isinf(x)]))
 
 
 if __name__ == "__main__":
-    print(remoteness(get_network(), 2))
+    net = get_network()
+    print(remoteness(net, find_intersections(net, ["STATE ST", "1700 S"])[0]))
