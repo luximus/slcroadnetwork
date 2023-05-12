@@ -1,3 +1,6 @@
+import logging
+import os
+
 import geopandas as gpd
 import networkx as nx
 import pandas as pd
@@ -5,9 +8,7 @@ import shapely as shp
 from shapely.ops import linemerge
 from tqdm import tqdm
 
-import logging
 from logginghandlers import create_handler
-import os
 
 __logger = logging.getLogger(__name__)
 __logger.addHandler(create_handler(logging.INFO))
@@ -19,14 +20,24 @@ def get_network() -> nx.DiGraph:
         start, *_, end = geom.coords
         return (round(start[0], 3), round(start[1], 3)), (round(end[0], 3), round(end[1], 3))
 
+    def meters_to_miles(measure_meters: float) -> float:
+        return measure_meters * 100 / 2.54 / 12 / 5280
+
     if os.path.isfile('../resources/SaltLakeCountyRoadNetwork.xml.gz'):
         __logger.info('Road network already created.')
-        return nx.read_graphml('../resources/SaltLakeCountyRoadNetwork.xml.gz')
+        road_network = nx.read_graphml('../resources/SaltLakeCountyRoadNetwork.xml.gz')
+        nx.relabel_nodes(road_network, int, copy=False)  # type: ignore
+        return road_network
 
     if os.path.isfile('../resources/SaltLakeCountyRoads.geojson'):
         __logger.info('Loading Salt Lake County road data...')
         slc_road_gdf = gpd.read_file('../resources/SaltLakeCountyRoads.geojson')
     else:
+        if not os.path.isfile('../resources/Utah_County_Boundaries/Utah_County_Boundaries.shp'):
+            raise FileNotFoundError('The Utah county boundaries cannot be found.')
+        if not os.path.isdir('../resources/Utah_Roads.gdb'):
+            raise FileNotFoundError('The Utah roads database cannot be found.')
+
         __logger.info('Loading Salt Lake County boundary...')
         county_boundaries = gpd.read_file('../resources/Utah_County_Boundaries/Utah_County_Boundaries.shp')
         slcounty_boundary: gpd.GeoSeries = county_boundaries.loc[county_boundaries['NAME'] == 'SALT LAKE', 'geometry']
@@ -51,13 +62,15 @@ def get_network() -> nx.DiGraph:
             'one_way': 'uint8',
             'speed_limit': 'uint32',
         })
+        slc_road_gdf.loc[slc_road_gdf['speed_limit'] == 0, 'speed_limit'] = 20
 
         __logger.info('Estimating true road length...')
         # The logic behind this is fairly complex. ESRI:102005 is a coordinate reference system where the Euclidean
         # distance between objects is approximately equal to the real distance. `to_crs` reprojects all the coordinates
         # to this "equidistant" coordinate system, which then allows us to just use the `length` property to determine
-        # the length.
-        slc_road_gdf['length'] = slc_road_gdf.to_crs(('esri', 102005)).geometry.apply(lambda geom: geom.length)
+        # the length. The length is in meters, so it must be converted to miles.
+        slc_road_gdf['length'] = slc_road_gdf.to_crs(('esri', 102005)).geometry.apply(lambda geom: meters_to_miles(geom.length))
+        slc_road_gdf['traversal_time'] = slc_road_gdf['length'] / slc_road_gdf['speed_limit']
 
         __logger.info('Saving filtered data...')
         slc_road_gdf.to_file('../resources/SaltLakeCountyRoads.geojson', driver='GeoJSON')
