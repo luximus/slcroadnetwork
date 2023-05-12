@@ -23,7 +23,7 @@ else:
     __road_geometries = None
 
 
-def save_image(graph: nx.DiGraph, path='road_network.pdf', attribute: str | None = None, with_labels=False):
+def save_image(graph: nx.DiGraph, path='road_network.pdf', attribute: str | dict[tuple[int, int], Any] | None = None, with_labels=False):
     if attribute is None or __road_geometries is None:
         fig, ax = plt.subplots()
         if __road_geometries is None:
@@ -46,7 +46,7 @@ def save_image(graph: nx.DiGraph, path='road_network.pdf', attribute: str | None
         ax1_values: dict[int, Any] = {}
         ax2_values: dict[int, Any] = {}
         for graph_index, geometry_index in nx.get_edge_attributes(graph, 'geometry_index').items():
-            value = graph[graph_index[0]][graph_index[1]][attribute]
+            value = graph[graph_index[0]][graph_index[1]][attribute] if isinstance(attribute, str) else attribute[graph_index]
             if geometry_index in ax1_values:
                 ax2_values[geometry_index] = value
             else:
@@ -55,7 +55,10 @@ def save_image(graph: nx.DiGraph, path='road_network.pdf', attribute: str | None
         __road_geometries.iloc[sorted(ax1_values.keys()), :].plot(ax=ax1, column=pd.Series(ax1_values).sort_index(), cmap='plasma')
         __road_geometries.iloc[sorted(ax2_values.keys()), :].plot(ax=ax2, column=pd.Series(ax2_values).sort_index(), cmap='plasma')
 
-        values = nx.get_edge_attributes(graph, attribute).values()
+        if isinstance(attribute, str):
+            values = nx.get_edge_attributes(graph, attribute).values()
+        else:
+            values = attribute.values()
         minimum, maximum = min(values), max(values)
         cbar = fig.colorbar(cm.ScalarMappable(norm=colors.Normalize(vmin=minimum, vmax=maximum), cmap='plasma'), ax=(ax1, ax2))
         for tick in cbar.ax.get_yticklabels():

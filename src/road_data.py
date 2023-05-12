@@ -70,6 +70,7 @@ def get_network() -> nx.DiGraph:
         # to this "equidistant" coordinate system, which then allows us to just use the `length` property to determine
         # the length. The length is in meters, so it must be converted to miles.
         slc_road_gdf['length'] = slc_road_gdf.to_crs(('esri', 102005)).geometry.apply(lambda geom: meters_to_miles(geom.length))
+        slc_road_gdf['traversal_time'] = slc_road_gdf['length'] / slc_road_gdf['speed_limit']
 
         __logger.info('Saving filtered data...')
         slc_road_gdf.to_file('../resources/SaltLakeCountyRoads.geojson', driver='GeoJSON')
