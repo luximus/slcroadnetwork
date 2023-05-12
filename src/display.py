@@ -39,8 +39,12 @@ def save_image(graph: nx.DiGraph, path='road_network.pdf', attribute: str | dict
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(100, 100))
         ax1.set_aspect('equal')
         ax2.set_aspect('equal')
-        ax1.set_title(f'{attribute}: direction 1')
-        ax2.set_title(f'{attribute}: direction 2')
+        if isinstance(attribute, str):
+            ax1.set_title(f'{attribute}: direction 1')
+            ax2.set_title(f'{attribute}: direction 2')
+        else:
+            ax1.set_title(f'direction 1')
+            ax2.set_title(f'direction 2')
         ax1.title.set_fontsize(100)
         ax2.title.set_fontsize(100)
         ax1_values: dict[int, Any] = {}
