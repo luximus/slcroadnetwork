@@ -1,13 +1,17 @@
 import networkx as nx
-import matplotlib.pyplot as plt
-import random
 from road_data import get_network
 from tqdm import tqdm
 import numpy as np
 
-def remoteness(graph, source):
+
+def remoteness(graph: nx.Graph, source: int) -> float:
     """
     Finds the average minimum distance of one node to every other node in the graph.
+
+    :param graph: The graph to search.
+    :param source: The source node.
+    :return: A measure of how far away the node is in temporal distance from the others, which is determined by the
+    average minimum distance from the node to all other nodes.
     """
     dist = {}
     prev = {}
@@ -20,6 +24,7 @@ def remoteness(graph, source):
         raise KeyError(source)
     dist[source] = 0
 
+    pbar = tqdm(total=len(q))
     while q:
         u = min(q, key=lambda x: dist[x])
         q.remove(u)
@@ -29,8 +34,10 @@ def remoteness(graph, source):
             if alt < dist[neighbor]:
                 dist[neighbor] = alt
                 prev[neighbor] = u
+        pbar.update()
+    pbar.close()
     return np.average(np.array(list(dist.values())))
 
 
 if __name__ == "__main__":
-    print(remoteness(get_network(), 2)[0])
+    print(remoteness(get_network(), 2))
