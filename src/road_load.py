@@ -28,17 +28,14 @@ def relative_load_on_road(road_network: nx.Graph, road_name: str, sample_size=10
                 pass
 
         betweenness[edge] = total / (sample_size * (sample_size - 1))
-    return betweenness
+    return np.average(np.array(list(betweenness.values())))
 
 
 if __name__ == '__main__':
     net = get_network()
-    bb_i80 = relative_load_on_road(net, 'I-80 WB FWY')
-    print(bb_i80)
-    bb_1300s = relative_load_on_road(net, '1300 S')
-    print(bb_1300s)
-    bb_beacon = relative_load_on_road(net, 'BEACON DR')
-    print(bb_beacon)
-    print(f'Average load on I-80 westbound: {np.average(np.array(list(bb_i80.values())))}')
-    print(f'Average load on 1300 S: {np.average(np.array(list(bb_1300s.values())))}')
-    print(f'Average load on Beacon Drive: {np.average(np.array(list(bb_beacon.values())))}')
+    load_i80 = relative_load_on_road(net, 'I-80 WB FWY')
+    print(f'Average load on I-80 westbound: {load_i80}')
+    load_1300s = relative_load_on_road(net, '1300 S')
+    print(f'Average load on 1300 S: {load_1300s}')
+    load_beacon = relative_load_on_road(net, 'BEACON DR')
+    print(f'Average load on Beacon Drive: {load_beacon}')
